@@ -4,7 +4,7 @@ gatherUsageStats = false
 [theme]
 base = "light"
 primaryColor = "#6c63ff"
-backgroundColor = "#E3F2FD"
-secondaryBackgroundColor = "F5F5F5"   
+backgroundColor = "#dceeff"       
+secondaryBackgroundColor = "F5F5F5" 
 textColor = "#042C3B"
 font = "sans serif"

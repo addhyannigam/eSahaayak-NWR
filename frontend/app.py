@@ -1,41 +1,55 @@
 import streamlit as st
 from PIL import Image
 from datetime import datetime
+import base64
+import admin
+import users
 
-# --- App Title and Logo ---
-st.set_page_config(page_title="eSahaayak NWR",page_icon="design/logo.png", layout="centered")
+st.set_page_config(page_title="eSahaayak NWR", page_icon="design/logo.png", layout="centered")
 
-image = Image.open("design/logo2.jpg")
-resized_image = image.resize((400,150))  # Width: 350px, Height: 200px
-st.image(resized_image) 
-st.title("🛠 eSahaayak NWR")
-st.markdown("जहां तकनीकी समस्याओं का समाधान है एक क्लिक दूर")
+# --- Session State to track login ---
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+if "role" not in st.session_state:
+    st.session_state.role = None
 
-# --- Side Bar OPTION ---#
-st.sidebar.selectbox("Choose Role", ["Users", "Admin"])
+# --- Logo Display ---
+with open("design/logo3.png", "rb") as image_file:
+    encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
 
+st.markdown(
+    f"""
+    <div style="text-align: center;">
+        <img src="data:image/png;base64,{encoded_string}" width="500" style="margin-bottom: 20px;" />
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
-# --- Complaint Form ---
-st.markdown("### 📝 Submit a Complaint")
+# --- Login Flow ---
+valid_user_ids = ["EMP001", "EMP002", "EMP003"]
 
-with st.form("complaint_form"):
-    name = st.text_input("Your Name")
-    emp_id = st.text_input("Employee ID")
-    email = st.text_input("Email")
-    department = st.selectbox("Department", ["Accounts", "Operations", "IT", "HR", "Engineering", "Other"])
-    category = st.selectbox("Complaint Category", [
-        "eOffice", "SPARROW", "IREPS", "IRPSM", "Antivirus", "Network", "Other"
-    ])
-    description = st.text_area("Describe the Issue")
-    date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+if not st.session_state.logged_in:
+    st.markdown("### 🔐 Enter Your Employee ID to Proceed")
+    user_id = st.text_input("Employee ID")
+    if st.button("Login"):
+        if user_id.upper() in [uid.upper() for uid in valid_user_ids]:
+            st.session_state.logged_in = True
+            st.success("✅ Login successful.")
+        else:
+            st.error("❌ Invalid Employee ID. Please try again.")
 
-    submitted = st.form_submit_button("Submit Complaint")
+# --- Show Sidebar AFTER login ---
+if st.session_state.logged_in:
+    st.sidebar.markdown("## Select Role")
+    role = st.sidebar.selectbox("Choose Role", ["Users", "Admin"])
 
-    if submitted:
-        st.success(f"Complaint submitted successfully on {date}.")
-        st.info("Our IT support team will review and respond shortly.")
-        # You can later save this to a database or CSV
+    # Show User Page
+    if role == "Users":
+        st.session_state.role = "Users"
+        users.user_login()
 
-# --- Footer ---
-st.markdown("---")
-st.markdown("© 2025 North Western Railway | Managed by IT Cell")
+    # Show Admin Page
+    elif role == "Admin":
+        st.session_state.role = "Admin"
+        admin.admin_login()

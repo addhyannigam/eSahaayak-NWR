@@ -1,4 +1,6 @@
 import sqlite3
+DB_PATH = 'complaints.db'
+conn = sqlite3.connect('complaints.db')
 
 def insert_complaint(name, emp_id, email, department, category, description, date):
     conn = sqlite3.connect('complaints.db')
@@ -26,3 +28,13 @@ def update_status(complaint_id, new_status):
     cursor.execute("UPDATE complaints SET status = ? WHERE id = ?", (new_status, complaint_id))
     conn.commit()
     conn.close()
+
+def delete_complaint(cid):
+    conn = sqlite3.connect('complaints.db') 
+    c = conn.cursor()
+    c.execute("DELETE FROM complaints WHERE id = ?", (cid,))
+    conn.commit()
+    conn.close()
+
+
+

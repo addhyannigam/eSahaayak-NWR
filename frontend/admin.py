@@ -3,6 +3,16 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from backend.database import fetch_complaints, update_status, delete_complaint
+import pandas as pd 
+
+def convert_to_csv(complaints):
+    # Convert complaint data to DataFrame
+    df = pd.DataFrame(complaints, columns=[
+        "ID", "Name", "Employee ID", "Email", "Category",
+        "Description", "Date", "Status"
+    ])
+    return df.to_csv(index=False).encode('utf-8')
+
 
 def admin_login():
     st.title("🔐 Admin Login")
@@ -25,7 +35,7 @@ def admin_login():
         complaints = fetch_complaints()
 
         for complaint in complaints:
-            cid, name, emp_id, category, description, date, status = complaint
+            cid, name, emp_id, email, category, description, date, status = complaint
 
             with st.expander(f"🔎 Complaint #{cid} | {name} ({emp_id}) - {category} [{status}]"):
                 col1, col2 = st.columns(2)
@@ -55,6 +65,20 @@ def admin_login():
 
                 with col_delete:
                     if st.button("🗑️ Delete", key=f"delete_btn_{cid}"):
-                        delete_complaint(cid)
-                        st.warning(f"Complaint #{cid} deleted.")
-                        st.rerun()
+                        if status=="Done":
+                            delete_complaint(cid)
+                            st.warning(f"Complaint #{cid} deleted.")
+                            st.rerun()
+                        else:
+                            st.error("Cannot delete a pending complaint.")
+            
+        if complaints:
+            csv_data = convert_to_csv(complaints)
+            st.download_button(
+                    label="📥 Download All Complaints as CSV",
+                    data=csv_data,
+                    file_name='complaints_report.csv',
+                    key="download_csv_1",
+                    mime='text/csv'
+                )
+

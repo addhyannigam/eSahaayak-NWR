@@ -2,7 +2,8 @@ import streamlit as st
 from datetime import datetime
 from backend.database import insert_complaint
 
-    # --- Complaint Form ---
+valid_user_ids = ["EMP001", "EMP002", "EMP003"]  # List of valid employee IDs
+
 def user_login():
     st.markdown("### 📝 Submit a Complaint")
 
@@ -26,11 +27,17 @@ def user_login():
             submitted = st.form_submit_button("Submit Complaint")
 
             if submitted:
-                insert_complaint(name, emp_id, email, department, category, description, date)
-                st.success(f"✅ Complaint submitted successfully on {date} ! Status: Pending")
-                st.info("Our IT support team will review and respond shortly.")
-                st.session_state.form_submitted = True
-                st.rerun()  # Refresh the app so the form is hidden
+                if not all([name.strip(), emp_id.strip(), email.strip(), description.strip()]):
+                    st.error("❌ Please fill in all the fields.")
+                elif emp_id.upper().strip() not in valid_user_ids:
+                    st.error("❌ Invalid Employee ID. Please enter a valid ID.")
+                else:
+                    insert_complaint(name, emp_id, email, department, category, description, date)
+                    st.success(f"✅ Complaint submitted successfully on {date}! Status: Pending")
+                    st.info("Our IT support team will review and respond shortly.")
+                    st.session_state.form_submitted = True
+                    st.rerun()
+
 
     else:
         st.success("✅ Your complaint has already been submitted.")

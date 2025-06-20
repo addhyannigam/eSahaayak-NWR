@@ -1,25 +1,28 @@
 import streamlit as st
 from PIL import Image
-from datetime import datetime
 import base64
 import admin
 import users
+import track
 
+# --- App Configuration ---
 st.set_page_config(page_title="eSahaayak NWR", page_icon="design/logo.png", layout="centered")
 
-# --- Session State ---
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-if "user_id" not in st.session_state:
-    st.session_state.user_id = None
-if "admin_logged_in" not in st.session_state:
-    st.session_state.admin_logged_in = False
-if "selected_role" not in st.session_state:
-    st.session_state.selected_role = None
-if "previous_role" not in st.session_state:
-    st.session_state.previous_role = None
+# --- Initialize Session State Safely ---
+default_session_values = {
+    "logged_in": False,
+    "user_id": None,
+    "admin_logged_in": False,
+    "selected_role": None,
+    "previous_role": None,
+    "admin_username": None
+}
 
-# --- Logo ---
+for key, val in default_session_values.items():
+    if key not in st.session_state:
+        st.session_state[key] = val
+
+# --- Logo Display ---
 with open("design/logo3.png", "rb") as image_file:
     encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
 st.markdown(
@@ -31,40 +34,42 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# --- Login ---
+# --- User Authentication ---
 valid_user_ids = ["EMP001", "EMP002", "EMP003"]
 
 if not st.session_state.logged_in:
     st.markdown("### 🔐 Enter Your Employee ID to Proceed")
     user_id = st.text_input("Employee ID")
     if st.button("Login"):
-        if user_id.upper() in [uid.upper() for uid in valid_user_ids]:
+        normalized_id = user_id.strip().upper()
+        if normalized_id in valid_user_ids:
             st.session_state.logged_in = True
-            st.session_state.user_id = user_id.upper()
+            st.session_state.user_id = normalized_id
             st.success("✅ Login successful.")
             st.rerun()
         else:
             st.error("❌ Invalid Employee ID")
 
-# --- After login ---
+# --- Main App Interface ---
 if st.session_state.logged_in:
-    st.sidebar.markdown("## Select Role")
-    selected = st.sidebar.selectbox("Choose Role", ["Users", "Admin"])
-    
-    # 🔄 Reset admin login if role has changed from Admin to something else
-    if st.session_state.previous_role == "Admin" and selected != "Admin":
-        st.session_state.admin_logged_in = False
+    st.sidebar.markdown("## 📂 Navigation")
+    selected = st.sidebar.selectbox("Choose a page", ["Submit Complaint", "Admin Panel", "Track Status"])
 
-    # ✅ Update current selected role
+    # --- Detect role switch (Admin → non-Admin) and reset admin session ---
+    if st.session_state.previous_role == "Admin Panel" and selected != "Admin Panel":
+        st.session_state.admin_logged_in = False
+        st.session_state.admin_username = None
+
+    # Update role tracking
     st.session_state.selected_role = selected
     st.session_state.previous_role = selected
 
-    # --- USER ROLE ---
-    if selected == "Users":
+    # --- User Interface: Complaint Submission ---
+    if selected == "Submit Complaint":
         users.user_login()
 
-    # --- ADMIN ROLE ---
-    elif selected == "Admin":
+    # --- Admin Interface: Requires Login ---
+    elif selected == "Admin Panel":
         if not st.session_state.admin_logged_in:
             st.markdown("### 🔐 Admin Login Required")
             username = st.text_input("Username")
@@ -73,15 +78,18 @@ if st.session_state.logged_in:
                 if username == "addy" and password == "12345":
                     st.success("✅ Admin access granted.")
                     st.session_state.admin_logged_in = True
+                    st.session_state.admin_username = username
                     st.rerun()
                 else:
                     st.error("❌ Incorrect admin credentials.")
         else:
             admin.admin_login()
 
-# --- Logout Button ---
-if st.session_state.logged_in:
+    # --- Track Complaint Status (Employee View) ---
+    elif selected == "Track Status":
+        track.track_complaint_status()
+
+    # --- Logout Button ---
     if st.sidebar.button("🔒 Logout"):
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
+        st.session_state.clear() 
         st.rerun()

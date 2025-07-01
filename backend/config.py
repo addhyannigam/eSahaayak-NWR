@@ -10,7 +10,7 @@ def create_table():
         CREATE TABLE IF NOT EXISTS complaints (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
-            emp_id TEXT NOT NULL,
+            hrms_id TEXT NOT NULL,
             email TEXT NOT NULL,
             department TEXT NOT NULL,
             category TEXT NOT NULL,

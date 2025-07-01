@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd 
 from PIL import Image
 import base64
 import admin
@@ -35,11 +36,11 @@ st.markdown(
 )
 
 # --- User Authentication ---
-valid_user_ids = ["EMP001", "EMP002", "EMP003"]
+valid_user_ids = pd.read_csv("hrms_ids.csv")["HRMS ID"].astype(str).tolist()
 
 if not st.session_state.logged_in:
-    st.markdown("### 🔐 Enter Your Employee ID to Proceed")
-    user_id = st.text_input("Employee ID")
+    st.markdown("### 🔐 Enter Your HRMS ID to Proceed")
+    user_id = st.text_input("HRMS ID")
     if st.button("Login"):
         normalized_id = user_id.strip().upper()
         if normalized_id in valid_user_ids:
@@ -48,7 +49,7 @@ if not st.session_state.logged_in:
             st.success("✅ Login successful.")
             st.rerun()
         else:
-            st.error("❌ Invalid Employee ID")
+            st.error("❌ Invalid HRMS ID")
 
 # --- Main App Interface ---
 if st.session_state.logged_in:
@@ -75,7 +76,7 @@ if st.session_state.logged_in:
             username = st.text_input("Username")
             password = st.text_input("Password", type="password")
             if st.button("Login as Admin"):
-                if username == "addy" and password == "12345":
+                if username == "addy" and password == "123":
                     st.success("✅ Admin access granted.")
                     st.session_state.admin_logged_in = True
                     st.session_state.admin_username = username

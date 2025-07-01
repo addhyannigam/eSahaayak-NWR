@@ -2,14 +2,14 @@ import sqlite3
 DB_PATH = 'complaints.db'
 conn = sqlite3.connect('complaints.db')
 
-def insert_complaint(name, emp_id, email, department, category, description, date):
+def insert_complaint(name, hrms_id, email, department, category, description, date):
     conn = sqlite3.connect('complaints.db')
     cursor = conn.cursor()
 
     cursor.execute('''
-        INSERT INTO complaints (name, emp_id, email, department, category, description, date, status)
+        INSERT INTO complaints (name, hrms_id, email, department, category, description, date, status)
         VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending')
-    ''', (name, emp_id, email, department, category, description, date))
+    ''', (name, hrms_id, email, department, category, description, date))
 
     conn.commit()
     conn.close()
@@ -17,7 +17,7 @@ def insert_complaint(name, emp_id, email, department, category, description, dat
 def fetch_complaints():
     conn = sqlite3.connect('complaints.db')
     cursor = conn.cursor()
-    cursor.execute("SELECT id, name, emp_id, email, category, description, date, status FROM complaints")
+    cursor.execute("SELECT id, name, hrms_id, email, category, description, date, status FROM complaints")
     data = cursor.fetchall()
     conn.close()
     return data
@@ -36,14 +36,14 @@ def delete_complaint(cid):
     conn.commit()
     conn.close()
     
-def track_status_by_emp_id(emp_id):
+def track_status_by_hrms_id(hrms_id):
     conn = sqlite3.connect('complaints.db')
     cursor = conn.cursor()
     cursor.execute('''
         SELECT category, description, status
         FROM complaints
-        WHERE emp_id = ?
-    ''', (emp_id,))
+        WHERE hrms_id = ?
+    ''', (hrms_id,))
     result = cursor.fetchall()
     conn.close()
     return result

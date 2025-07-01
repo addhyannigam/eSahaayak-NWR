@@ -1,8 +1,9 @@
 import streamlit as st
+import pandas as pd 
 from datetime import datetime
 from backend.database import insert_complaint
 
-valid_user_ids = ["EMP001", "EMP002", "EMP003"]  # List of valid employee IDs
+valid_user_ids = pd.read_csv("hrms_ids.csv")["HRMS ID"].astype(str).tolist() # List of valid employee IDs
 
 def user_login():
     st.markdown("### 📝 Submit a Complaint")
@@ -15,24 +16,31 @@ def user_login():
     if not st.session_state.form_submitted:
         with st.form("complaint_form"):
             name = st.text_input("Your Name")
-            emp_id = st.text_input("Employee ID")
+            hrms_id = st.text_input("HRMS ID")
             email = st.text_input("Email")
-            department = st.selectbox("Department", ["Accounts", "Operations", "IT", "HR", "Engineering", "Other"])
-            category = st.selectbox("Complaint Category", [
-                "eOffice", "SPARROW", "IREPS", "IRPSM", "Antivirus", "Network", "Other"
-            ])
+            department = st.selectbox("Department", ["General", "Administration", "Accounts Department", "Commercial",
+                                        "Department", "Construction", "Electrical Department", "Engineering", "IT Centre", 
+                                        "Mechanical", "Medical", "Operating Department", "Personnel Department", "Rajbhasha", 
+                                        "Safety Department", "Security Department", "Signal & Telecom", "Stores Department"
+                                        ,"Vigilance Department"])
+            
+            category = st.selectbox("Complaint Category", ["eOffice", "IR-WCMS", "IRPSM", "ANTIVIRUS", "eOffice", "HMIS", "HRMS",
+                                                           "HARDWARE (COMPUTER- PRINTER-UPS)", "IPAS (AIMS)", "IREPS / UDM", "NIC MAIL",
+                                                           "NETWORKING", "NETWORKING (another entry, possibly different level)",
+                                                           "ORH-PRAVAS", "SPARROW", 'others'])
+            
             description = st.text_area("Describe the Issue")
             date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
             submitted = st.form_submit_button("Submit Complaint")
 
             if submitted:
-                if not all([name.strip(), emp_id.strip(), email.strip(), description.strip()]):
+                if not all([name.strip(), hrms_id.strip(), email.strip(), description.strip()]):
                     st.error("❌ Please fill in all the fields.")
-                elif emp_id.upper().strip() not in valid_user_ids:
-                    st.error("❌ Invalid Employee ID. Please enter a valid ID.")
+                elif hrms_id.upper().strip() not in valid_user_ids:
+                    st.error("❌ Invalid HRMS ID. Please enter a valid ID.")
                 else:
-                    insert_complaint(name, emp_id, email, department, category, description, date)
+                    insert_complaint(name, hrms_id, email, department, category, description, date)
                     st.success(f"✅ Complaint submitted successfully on {date}! Status: Pending")
                     st.info("Our IT support team will review and respond shortly.")
                     st.session_state.form_submitted = True

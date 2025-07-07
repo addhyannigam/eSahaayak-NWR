@@ -16,7 +16,8 @@ default_session_values = {
     "admin_logged_in": False,
     "selected_role": None,
     "previous_role": None,
-    "admin_username": None
+    "admin_username": None,
+    "admin_role": None
 }
 
 for key, val in default_session_values.items():
@@ -60,6 +61,7 @@ if st.session_state.logged_in:
     if st.session_state.previous_role == "Admin Panel" and selected != "Admin Panel":
         st.session_state.admin_logged_in = False
         st.session_state.admin_username = None
+        st.session_state.admin_role = None
 
     # Update role tracking
     st.session_state.selected_role = selected
@@ -69,22 +71,9 @@ if st.session_state.logged_in:
     if selected == "Submit Complaint":
         users.user_login()
 
-    # --- Admin Interface: Requires Login ---
+    # --- Admin Interface: Fully handled in admin.py ---
     elif selected == "Admin Panel":
-        if not st.session_state.admin_logged_in:
-            st.markdown("### 🔐 Admin Login Required")
-            username = st.text_input("Username")
-            password = st.text_input("Password", type="password")
-            if st.button("Login as Admin"):
-                if username == "addy" and password == "123":
-                    st.success("✅ Admin access granted.")
-                    st.session_state.admin_logged_in = True
-                    st.session_state.admin_username = username
-                    st.rerun()
-                else:
-                    st.error("❌ Incorrect admin credentials.")
-        else:
-            admin.admin_login()
+        admin.admin_login()
 
     # --- Track Complaint Status (Employee View) ---
     elif selected == "Track Status":

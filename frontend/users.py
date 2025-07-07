@@ -17,9 +17,8 @@ def user_login():
         with st.form("complaint_form"):
             name = st.text_input("Your Name")
             hrms_id = st.text_input("HRMS ID")
-            email = st.text_input("Email")
             department = st.selectbox("Department", ["General", "Administration", "Accounts Department", "Commercial",
-                                        "Department", "Construction", "Electrical Department", "Engineering", "IT Centre", 
+                                        "Construction", "Electrical Department", "Engineering", "IT Centre", 
                                         "Mechanical", "Medical", "Operating Department", "Personnel Department", "Rajbhasha", 
                                         "Safety Department", "Security Department", "Signal & Telecom", "Stores Department"
                                         ,"Vigilance Department"])
@@ -35,12 +34,12 @@ def user_login():
             submitted = st.form_submit_button("Submit Complaint")
 
             if submitted:
-                if not all([name.strip(), hrms_id.strip(), email.strip(), description.strip()]):
+                if not all([name.strip(), hrms_id.strip(), description.strip()]):
                     st.error("❌ Please fill in all the fields.")
                 elif hrms_id.upper().strip() not in valid_user_ids:
                     st.error("❌ Invalid HRMS ID. Please enter a valid ID.")
                 else:
-                    insert_complaint(name, hrms_id, email, department, category, description, date)
+                    insert_complaint(name, hrms_id, department, category, description, date)
                     st.success(f"✅ Complaint submitted successfully on {date}! Status: Pending")
                     st.info("Our IT support team will review and respond shortly.")
                     st.session_state.form_submitted = True

@@ -2,25 +2,26 @@ import sqlite3
 DB_PATH = 'complaints.db'
 conn = sqlite3.connect('complaints.db')
 
-def insert_complaint(name, hrms_id, email, department, category, description, date):
+def insert_complaint(name, hrms_id, department, category, description, date):
     conn = sqlite3.connect('complaints.db')
     cursor = conn.cursor()
 
     cursor.execute('''
-        INSERT INTO complaints (name, hrms_id, email, department, category, description, date, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending')
-    ''', (name, hrms_id, email, department, category, description, date))
+        INSERT INTO complaints (name, hrms_id, department, category, description, date, status)
+        VALUES (?, ?, ?, ?, ?, ?, 'Pending')
+    ''', (name, hrms_id, department, category, description, date))
 
     conn.commit()
     conn.close()
 
 def fetch_complaints():
-    conn = sqlite3.connect('complaints.db')
+    conn = sqlite3.connect("complaints.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT id, name, hrms_id, email, category, description, date, status FROM complaints")
-    data = cursor.fetchall()
+    cursor.execute("SELECT id, name, hrms_id, department, category, description, date, status FROM complaints")
+    complaints = cursor.fetchall()
     conn.close()
-    return data
+    return complaints
+
 
 def update_status(complaint_id, new_status):
     conn = sqlite3.connect('complaints.db')

@@ -1,52 +1,90 @@
 import streamlit as st
 import sys
 import os
+import pandas as pd
+
+# Add project root to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from backend.database import fetch_complaints, update_status, delete_complaint
-import pandas as pd 
 
+# --- CSV Export ---
 def convert_to_csv(complaints):
-    # Convert complaint data to DataFrame
     df = pd.DataFrame(complaints, columns=[
-        "ID", "Name", "Employee ID", "Email", "Category",
+        "ID", "Name", "HRMS ID", "Department", "Category",
         "Description", "Date", "Status"
     ])
     return df.to_csv(index=False).encode('utf-8')
 
+# --- Normalize Helper ---
+def normalize(text):
+    return text.strip().lower().replace(" department", "").replace("&", "and")
 
+# --- Admin Login Function ---
 def admin_login():
     st.title("🔐 Admin Login")
 
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
 
-    if st.button("Login", key="admin_login_btn"):
-        if username == "addy" and password == "12345":
-            st.success("Login successful!")
+    admin_df = pd.read_csv("admin_users.csv")
 
-            # Use session_state to persist login
+    if st.button("Login", key="admin_login_btn"):
+        matched_admin = admin_df[
+            (admin_df["username"] == username) & (admin_df["password"] == password)
+        ]
+        if not matched_admin.empty:
+            st.success(f"Welcome, {username}!")
             st.session_state["admin_logged_in"] = True
+            st.session_state["admin_username"] = username
+            st.session_state["admin_role"] = matched_admin.iloc[0]["role"]
+            st.session_state["admin_category"] = matched_admin.iloc[0]["category"]
             st.rerun()
         else:
             st.error("Invalid username or password")
             return
 
     if st.session_state.get("admin_logged_in", False):
+        role = st.session_state["admin_role"]
+        username = st.session_state["admin_username"]
+        category_filter = st.session_state["admin_category"]
+
+        if role == "superadmin" or normalize(category_filter) == "all":
+            st.subheader("🌟 Super Admin Dashboard - View All Complaints")
+        else:
+            st.subheader(f"🔧 {category_filter.upper()} Admin Dashboard")
+
+        # Fetch complaints
         complaints = fetch_complaints()
 
-        for complaint in complaints:
-            cid, name, emp_id, email, category, description, date, status = complaint
+        # Filter complaints by department
+        if normalize(category_filter) != "all":
+            complaints = [
+                c for c in complaints if normalize(c[3]) == normalize(category_filter)
+            ]
 
-            with st.expander(f"🔎 Complaint #{cid} | {name} ({emp_id}) - {category} [{status}]"):
+        if not complaints:
+            st.warning("🚫 No complaints found for your department.")
+            return
+
+        # Show complaints
+        for complaint in complaints:
+            try:
+                cid, name, hrms_id, department, category, description, date, status = complaint
+            except ValueError:
+                st.error(f"⚠️ Malformed complaint record: {complaint}")
+                continue
+
+            with st.expander(f"🔎 Complaint #{cid} | {name} ({hrms_id}) - {category} [{status}]"):
                 col1, col2 = st.columns(2)
 
                 with col1:
                     st.markdown(f"**👤 Name:** {name}")
-                    st.markdown(f"**🆔 Employee ID:** {emp_id}")
+                    st.markdown(f"**🆔 HRMS ID:** {hrms_id}")
                     st.markdown(f"**📅 Date:** {date}")
 
                 with col2:
-                    st.markdown(f"**🏢 Department/Category:** {category}")
+                    st.markdown(f"**🏢 Department:** {department}")
+                    st.markdown(f"**📁 Category:** {category}")
                     st.markdown(f"**📌 Status:** `{status}`")
 
                 st.markdown("---")
@@ -65,20 +103,19 @@ def admin_login():
 
                 with col_delete:
                     if st.button("🗑️ Delete", key=f"delete_btn_{cid}"):
-                        if status=="Done":
+                        if status == "Done":
                             delete_complaint(cid)
                             st.warning(f"Complaint #{cid} deleted.")
                             st.rerun()
                         else:
-                            st.error("Cannot delete a pending complaint.")
-            
-        if complaints:
-            csv_data = convert_to_csv(complaints)
-            st.download_button(
-                    label="📥 Download All Complaints as CSV",
-                    data=csv_data,
-                    file_name='complaints_report.csv',
-                    key="download_csv_1",
-                    mime='text/csv'
-                )
+                            st.error("❌ Cannot delete a pending complaint.")
 
+        # Download button
+        csv_data = convert_to_csv(complaints)
+        st.download_button(
+            label="📥 Download Complaints as CSV",
+            data=csv_data,
+            file_name='complaints_report.csv',
+            key="download_csv_1",
+            mime='text/csv'
+        )

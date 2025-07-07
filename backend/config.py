@@ -11,7 +11,6 @@ def create_table():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             hrms_id TEXT NOT NULL,
-            email TEXT NOT NULL,
             department TEXT NOT NULL,
             category TEXT NOT NULL,
             description TEXT,

@@ -1,19 +1,24 @@
 import streamlit as st
-from backend.database import track_status_by_hrms_id
+from backend.database import track_status_by_app_id
 
 def track_complaint_status():
-    st.markdown("### 🔍 Track Complaint Status")
+    st.markdown("### 🔍 Track Complaint Status by Application ID")
 
-    hrms_id = st.text_input("Enter your HRMS ID to check complaint status")
+    application_id = st.text_input("Enter your Application ID")
 
     if st.button("Track Status"):
-        if hrms_id.strip() == "":
-            st.warning("Please enter a valid HRMS ID")
+        if application_id.strip() == "":
+            st.warning("⚠️ Please enter a valid Application ID.")
         else:
-            complaints = track_status_by_hrms_id(hrms_id)
-            if complaints:
-                for comp in complaints:
-                    category, description, status = comp
-                    st.info(f"🗂️ **Category**: {category}\n\n📝 **Description**: {description}\n\n📌 **Status**: `{status}`")
+            complaint = track_status_by_app_id(application_id.strip().upper())
+            if complaint:
+                name, dept, category, desc, date, status = complaint
+                st.success("✅ Complaint Found:")
+                st.write(f"👤 **Name**: {name}")
+                st.write(f"🏢 **Department**: {dept}")
+                st.write(f"🗂️ **Category**: {category}")
+                st.write(f"📝 **Description**: {desc}")
+                st.write(f"📅 **Date**: {date}")
+                st.write(f"📌 **Status**: `{status}`")
             else:
-                st.warning("No complaints found for this HRMS ID.")
+                st.error("❌ No complaint found for this Application ID.")

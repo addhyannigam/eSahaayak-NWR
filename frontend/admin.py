@@ -11,7 +11,7 @@ from backend.database import fetch_complaints, update_status, delete_complaint
 def convert_to_csv(complaints):
     df = pd.DataFrame(complaints, columns=[
         "ID", "Name", "HRMS ID", "Department", "Category",
-        "Description", "Date", "Status"
+        "Description", "Date", "Status", "Application ID"
     ])
     return df.to_csv(index=False).encode('utf-8')
 
@@ -69,7 +69,7 @@ def admin_login():
         # Show complaints
         for complaint in complaints:
             try:
-                cid, name, hrms_id, department, category, description, date, status = complaint
+                cid, name, hrms_id, department, category, description, date, status, app_id = complaint
             except ValueError:
                 st.error(f"⚠️ Malformed complaint record: {complaint}")
                 continue
@@ -81,6 +81,7 @@ def admin_login():
                     st.markdown(f"**👤 Name:** {name}")
                     st.markdown(f"**🆔 HRMS ID:** {hrms_id}")
                     st.markdown(f"**📅 Date:** {date}")
+                    st.markdown(f"**🧾 Application ID:** `{app_id}`")
 
                 with col2:
                     st.markdown(f"**🏢 Department:** {department}")

@@ -3,6 +3,7 @@ import sqlite3
 import pandas as pd
 
 def create_table():
+    import sqlite3
     conn = sqlite3.connect('complaints.db')
     cursor = conn.cursor()
 
@@ -15,12 +16,14 @@ def create_table():
             category TEXT NOT NULL,
             description TEXT,
             date TEXT NOT NULL,
-            status TEXT DEFAULT 'Pending'
+            status TEXT DEFAULT 'Pending',
+            application_id TEXT UNIQUE
         )
     ''')
 
     conn.commit()
     conn.close()
+
 
 if __name__ == "__main__":
     create_table()

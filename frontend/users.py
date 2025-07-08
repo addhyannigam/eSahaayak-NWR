@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd 
+import os
 from datetime import datetime
 from backend.database import insert_complaint
 
@@ -37,6 +38,10 @@ def user_login():
             ])
             
             description = st.text_area("Describe the Issue")
+
+            # ✅ File Upload
+            uploaded_file = st.file_uploader("📎 Attach Screenshot / Document (optional)", type=["png", "jpg", "jpeg", "pdf"])
+
             date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
             submitted = st.form_submit_button("Submit Complaint")
@@ -47,14 +52,24 @@ def user_login():
                 elif hrms_id.upper().strip() not in valid_user_ids:
                     st.error("❌ Invalid HRMS ID. Please enter a valid ID.")
                 else:
-                    # Insert complaint and store submission details
-                    application_id = insert_complaint(name, hrms_id, department, category, description, date)
+                    # ✅ Save file if uploaded
+                    file_path = None
+                    if uploaded_file:
+                        upload_dir = "uploaded_files"
+                        os.makedirs(upload_dir, exist_ok=True)
+                        filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{uploaded_file.name}"
+                        file_path = os.path.join(upload_dir, filename)
+                        with open(file_path, "wb") as f:
+                            f.write(uploaded_file.getbuffer())
+
+                    # ✅ Insert complaint with optional file_path 
+                    application_id = insert_complaint(name, hrms_id, department, category, description, date, file_path)
                     st.session_state.form_submitted = True
                     st.session_state.submitted_info = {
                         "application_id": application_id,
                         "date": date
                     }
-                    st.rerun()  # rerun to show submitted state
+                    st.rerun()
 
     # Show confirmation after submission
     else:

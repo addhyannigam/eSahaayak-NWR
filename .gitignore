@@ -1,3 +1,4 @@
 .venv/
 hrms_ids.csv
 admin_users.csv
+/frontend/uploaded_files/

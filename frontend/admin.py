@@ -11,7 +11,7 @@ from backend.database import fetch_complaints, update_status, delete_complaint
 def convert_to_csv(complaints):
     df = pd.DataFrame(complaints, columns=[
         "ID", "Name", "HRMS ID", "Department", "Category",
-        "Description", "Date", "Status", "Application ID"
+        "Description", "Date", "Status", "Application ID", "File Path"
     ])
     return df.to_csv(index=False).encode('utf-8')
 
@@ -69,7 +69,7 @@ def admin_login():
         # Show complaints
         for complaint in complaints:
             try:
-                cid, name, hrms_id, department, category, description, date, status, app_id = complaint
+                cid, name, hrms_id, department, category, description, date, status, app_id, file_path = complaint
             except ValueError:
                 st.error(f"⚠️ Malformed complaint record: {complaint}")
                 continue
@@ -91,6 +91,33 @@ def admin_login():
                 st.markdown("---")
                 st.markdown(f"**📝 Description:**\n{description}")
 
+                # --- File Preview or Download ---
+                if file_path and os.path.exists(file_path):
+                    file_ext = os.path.splitext(file_path)[-1].lower()
+
+                    if file_ext in [".png", ".jpg", ".jpeg"]:
+                        st.image(file_path, caption="📎 Attached Image", use_container_width=True)
+
+                    elif file_ext == ".pdf":
+                        with open(file_path, "rb") as f:
+                            st.download_button(
+                                label="📄 Download Attached PDF",
+                                data=f.read(),
+                                file_name=os.path.basename(file_path),
+                                mime="application/pdf",
+                                key=f"pdf_download_{cid}"
+                            )
+                    else:
+                        with open(file_path, "rb") as f:
+                            st.download_button(
+                                label=f"📎 Download Attached File ({os.path.basename(file_path)})",
+                                data=f.read(),
+                                file_name=os.path.basename(file_path),
+                                mime="application/octet-stream",
+                                key=f"generic_download_{cid}"
+                            )
+
+                # --- Status Actions ---
                 col_done, col_delete = st.columns(2)
 
                 with col_done:
@@ -111,7 +138,7 @@ def admin_login():
                         else:
                             st.error("❌ Cannot delete a pending complaint.")
 
-        # Download button
+        # Download all complaints as CSV
         csv_data = convert_to_csv(complaints)
         st.download_button(
             label="📥 Download Complaints as CSV",

@@ -59,3 +59,22 @@ def track_status_by_app_id(application_id):
     return result
 
 
+import sqlite3
+
+def track_status_by_hrms_id(hrms_id):
+    conn = sqlite3.connect('complaints.db')
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        SELECT name, department, category, description, date, status, file_path
+        FROM complaints
+        WHERE TRIM(UPPER(hrms_id)) = ?
+        ORDER BY date DESC
+    ''', (hrms_id.strip().upper(),))
+
+    results = cursor.fetchall()
+    conn.close()
+    return results
+
+
+

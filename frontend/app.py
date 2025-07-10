@@ -37,20 +37,29 @@ st.markdown(
 )
 
 # --- User Authentication ---
-valid_user_ids = pd.read_csv("hrms_ids.csv")["HRMS ID"].astype(str).tolist()
+valid_users_df = pd.read_csv("hrms_ids.csv")  
+valid_user_ids = valid_users_df["HRMS ID"].astype(str).tolist()
 
 if not st.session_state.logged_in:
     st.markdown("### 🔐 Enter Your HRMS ID to Proceed")
     user_id = st.text_input("HRMS ID")
+
     if st.button("Login"):
         normalized_id = user_id.strip().upper()
+
         if normalized_id in valid_user_ids:
+            user_name = valid_users_df.loc[valid_users_df["HRMS ID"] == normalized_id, "Name"].values[0]
+
+            # Store both ID and Name in session state
             st.session_state.logged_in = True
             st.session_state.user_id = normalized_id
-            st.success("✅ Login successful.")
+            st.session_state.user_name = user_name
+
+            st.success(f"✅ Welcome, {user_name}!")
             st.rerun()
         else:
             st.error("❌ Invalid HRMS ID")
+
 
 # --- Main App Interface ---
 if st.session_state.logged_in:

@@ -56,14 +56,14 @@ def admin_login():
         # Fetch complaints
         complaints = fetch_complaints()
 
-        # Filter complaints by department
+        # Filter complaints by category
         if normalize(category_filter) != "all":
             complaints = [
-                c for c in complaints if normalize(c[3]) == normalize(category_filter)
+                c for c in complaints if normalize(c[4]) == normalize(category_filter)
             ]
 
         if not complaints:
-            st.warning("🚫 No complaints found for your department.")
+            st.warning("🚫 No complaints found for your Category.")
             return
 
         # Show complaints

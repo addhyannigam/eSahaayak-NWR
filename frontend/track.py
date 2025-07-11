@@ -5,7 +5,7 @@ from backend.database import track_status_by_app_id, track_status_by_hrms_id
 def track_complaint_status():
     st.markdown("### 🔍 Track Complaint Status")
 
-    search_option = st.radio("Search by:", ("Application ID", "HRMS ID"))
+    search_option = st.selectbox("Search by:", ("Application ID", "HRMS ID"))
 
     search_input = st.text_input(f"Enter your {search_option}")
 

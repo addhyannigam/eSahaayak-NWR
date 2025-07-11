@@ -139,11 +139,57 @@ def admin_login():
                             st.error("❌ Cannot delete a pending complaint.")
 
         # Download all complaints as CSV
-        csv_data = convert_to_csv(complaints)
-        st.download_button(
-            label="📥 Download Complaints as CSV",
-            data=csv_data,
-            file_name='complaints_report.csv',
-            key="download_csv_1",
-            mime='text/csv'
-        )
+        # --- CSV Export for Superadmin ---
+        if role == "superadmin":
+            st.markdown("### 📥 Superadmin Download Options")
+
+            download_option = st.selectbox("Choose what to download:", ["Pending Complaints by Category", "All Complaints"])
+
+            if download_option == "Pending Complaints by Category":
+                st.markdown("🔍 **Download Pending Complaints by Category**")
+
+                # Extract unique categories
+                unique_categories = sorted(list(set([c[4] for c in complaints])))
+                selected_cat = st.selectbox("Select Complaint Category", ["ALL"] + unique_categories)
+
+                # Filter only pending complaints
+                filtered = [c for c in complaints if c[7] == "Pending"]
+
+                # Further filter by category if not ALL
+                if selected_cat != "ALL":
+                    filtered = [c for c in filtered if normalize(c[4]) == normalize(selected_cat)]
+
+                if not filtered:
+                    st.info("✅ No pending complaints found for this category.")
+                else:
+                    csv_data = convert_to_csv(filtered)
+                    st.download_button(
+                        label=f"📄 Download Pending Complaints ({selected_cat})",
+                        data=csv_data,
+                        file_name=f'pending_complaints_{selected_cat.lower().replace(" ", "_")}.csv',
+                        key="download_csv_pending",
+                        mime='text/csv'
+                    )
+
+            elif download_option == "All Complaints":
+                st.markdown("📦 **Download All Complaints (No Filter)**")
+                csv_data = convert_to_csv(complaints)
+                st.download_button(
+                    label="📥 Download Full Complaint Report",
+                    data=csv_data,
+                    file_name='all_complaints_report.csv',
+                    key="download_csv_all",
+                    mime='text/csv'
+                )
+
+        else:
+            # For regular admins: download filtered complaints (already category-specific)
+            csv_data = convert_to_csv(complaints)
+            st.download_button(
+                label="📥 Download Complaints as CSV",
+                data=csv_data,
+                file_name='complaints_report.csv',
+                key="download_csv_admin",
+                mime='text/csv'
+    )
+
